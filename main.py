@@ -146,17 +146,13 @@ def generate_kbo_records(year, options='all'):
         # index: 경기 수, columns: 팀 이름, values: 승률/승패마진 으로 데이터프레임 재구성
         winrate_by_game = combined_df.pivot_table(index='games', columns='team_name', values='win_rate')
         margin_by_game = combined_df.pivot_table(index='games', columns='team_name', values='margin')
-        
-        # 경기 수가 다른 팀 때문에 생기는 빈 값(NaN)을 이전 값으로 채움
-        winrate_by_game.ffill(inplace=True)
-        margin_by_game.ffill(inplace=True)
-
+    
         # 팀 순위에 따라 열 순서 정렬
         winrate_by_game = winrate_by_game[ranked_team_names]
         margin_by_game = margin_by_game[ranked_team_names]
 
         winrate_by_game = winrate_by_game.map(lambda x: f"{x:.3f}" if pd.notna(x) else '')   # 승률: 소숫점 3자리 문자열로 포맷팅
-        margin_by_game = margin_by_game.fillna(0).astype(int)  # 승패마진: float을 int로 변경 (NaN은 0으로 처리)
+        margin_by_game = margin_by_game.astype('Int64')  # 승패마진: float을 int 또는 nullable int(빈칸)로 변환
 
         winrate_by_game.to_csv(os.path.join(output_dir, f"winrate_game_{year}.csv"))
         margin_by_game.to_csv(os.path.join(output_dir, f"margin_game_{year}.csv"))
